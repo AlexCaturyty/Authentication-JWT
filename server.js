@@ -18,11 +18,17 @@ const SECRET = 'n7^9Yz$Q@2c8!fAe'
 // Rota para criar um novo usuário
 app.post('/signup', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, role } = req.body; // Adicione um campo "role" ao corpo da solicitação
         const userRecord = await admin.auth().createUser({
             email,
             password,
+            customClaims: { role: 'user' } 
         });
+        
+        
+
+        // Defina informações de função (role) para o usuário
+        await admin.auth().setCustomUserClaims(userRecord.uid, { role });
 
         res.status(200).json({
             statusCode: 200,
@@ -40,15 +46,20 @@ app.post('/signup', async (req, res) => {
     }
 });
 
+
+// Rota para fazer login e obter um token JWT
 // Rota para fazer login e obter um token JWT
 app.post('/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email } = req.body;
 
         const userRecord = await admin.auth().getUserByEmail(email);
 
+        // Obtém o papel (role) do usuário
+        const userRole = userRecord.customClaims && userRecord.customClaims.role;
+
         // O usuário foi encontrado, a senha já foi verificada ao criar o usuário
-        const token = jwt.sign({ uid: userRecord.uid }, SECRET, {
+        const token = jwt.sign({ uid: userRecord.uid, role: userRole }, SECRET, {
             expiresIn: '2h', // Token expira em 2 horas
         });
 
@@ -68,8 +79,9 @@ app.post('/login', async (req, res) => {
     }
 });
 
+
 // Middleware para verificar o token JWT
-const verificarToken = (req, res, next) => {
+const verificarToken = async (req, res, next) => { // Marque a função como async
     const tokenHeader = req.headers['authorization'];
     const token = tokenHeader && tokenHeader.split(' ')[1];
 
@@ -82,7 +94,9 @@ const verificarToken = (req, res, next) => {
 
     try {
         const decodedToken = jwt.verify(token, SECRET);
+        const userRecord = await admin.auth().getUser(decodedToken.uid);
         req.uid = decodedToken.uid;
+        req.userRole = userRecord.customClaims && userRecord.customClaims.role;
         next();
     } catch (error) {
         console.error('Erro ao verificar o token:', error);
@@ -91,7 +105,31 @@ const verificarToken = (req, res, next) => {
             message: 'Não autorizado! Token inválido.',
         });
     }
+    
 };
+
+
+const verificarAdmin = (req, res, next) => {
+    if (req.userRole === 'admin') {
+        next();
+    } else {
+        res.status(403).json({
+            statusCode: 403,
+            message: 'Acesso negado! Esta rota é apenas para administradores.',
+        });
+    }
+};
+
+
+
+app.get('/rotaApenasAdmin', verificarToken, verificarAdmin, (req, res) => {
+    // Apenas administradores podem acessar esta rota
+    res.status(200).json({
+        statusCode: 200,
+        message: 'Você acessou a rota protegida para administradores.',
+    });
+});
+
 
 // Rota protegida que requer token JWT
 app.get('/rotaAutenticada', verificarToken, (req, res) => {
