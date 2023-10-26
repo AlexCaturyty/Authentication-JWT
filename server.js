@@ -12,8 +12,12 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
-// Chave secreta para o JWT
 const SECRET = 'n7^9Yz$Q@2c8!fAe'
+
+app.get('/',(req,res) => {
+    res.json({ info: 'API de autenticação com Node.js, Express e Firebase'})
+});
+
 
 // Rota para criar um novo usuário
 app.post('/signup', async (req, res) => {
@@ -24,9 +28,6 @@ app.post('/signup', async (req, res) => {
             password,
             customClaims: { role: 'user' } 
         });
-        
-        
-
         
         await admin.auth().setCustomUserClaims(userRecord.uid, { role });
 
