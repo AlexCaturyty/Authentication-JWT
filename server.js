@@ -18,7 +18,7 @@ const SECRET = 'n7^9Yz$Q@2c8!fAe'
 // Rota para criar um novo usuário
 app.post('/signup', async (req, res) => {
     try {
-        const { email, password, role } = req.body; // Adicione um campo "role" ao corpo da solicitação
+        const { email, password, role } = req.body; 
         const userRecord = await admin.auth().createUser({
             email,
             password,
@@ -27,7 +27,7 @@ app.post('/signup', async (req, res) => {
         
         
 
-        // Defina informações de função (role) para o usuário
+        
         await admin.auth().setCustomUserClaims(userRecord.uid, { role });
 
         res.status(200).json({
@@ -48,17 +48,14 @@ app.post('/signup', async (req, res) => {
 
 
 // Rota para fazer login e obter um token JWT
-// Rota para fazer login e obter um token JWT
 app.post('/login', async (req, res) => {
     try {
         const { email } = req.body;
 
         const userRecord = await admin.auth().getUserByEmail(email);
 
-        // Obtém o papel (role) do usuário
         const userRole = userRecord.customClaims && userRecord.customClaims.role;
 
-        // O usuário foi encontrado, a senha já foi verificada ao criar o usuário
         const token = jwt.sign({ uid: userRecord.uid, role: userRole }, SECRET, {
             expiresIn: '2h', // Token expira em 2 horas
         });
