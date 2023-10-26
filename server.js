@@ -1,4 +1,3 @@
-// Importe os módulos necessários
 const express = require('express');
 const admin = require('firebase-admin');
 const jwt = require('jsonwebtoken');
