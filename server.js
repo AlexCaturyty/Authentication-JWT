@@ -18,7 +18,6 @@ app.get('/',(req,res) => {
     res.json({ info: 'API de autenticação com Node.js, Express e Firebase'})
 });
 
-
 // Rota para criar um novo usuário
 app.post('/signup', async (req, res) => {
     try {
@@ -46,7 +45,6 @@ app.post('/signup', async (req, res) => {
         });
     }
 });
-
 
 // Rota para fazer login e obter um token JWT
 app.post('/login', async (req, res) => {
@@ -77,9 +75,8 @@ app.post('/login', async (req, res) => {
     }
 });
 
-
 // Middleware para verificar o token JWT
-const verificarToken = async (req, res, next) => { // Marque a função como async
+const verificarToken = async (req, res, next) => { 
     const tokenHeader = req.headers['authorization'];
     const token = tokenHeader && tokenHeader.split(' ')[1];
 
@@ -106,7 +103,6 @@ const verificarToken = async (req, res, next) => { // Marque a função como asy
     
 };
 
-
 const verificarAdmin = (req, res, next) => {
     if (req.userRole === 'admin') {
         next();
@@ -118,8 +114,6 @@ const verificarAdmin = (req, res, next) => {
     }
 };
 
-
-
 app.get('/rotaApenasAdmin', verificarToken, verificarAdmin, (req, res) => {
     // Apenas administradores podem acessar esta rota
     res.status(200).json({
@@ -127,7 +121,6 @@ app.get('/rotaApenasAdmin', verificarToken, verificarAdmin, (req, res) => {
         message: 'Você acessou a rota protegida para administradores.',
     });
 });
-
 
 // Rota protegida que requer token JWT
 app.get('/rotaAutenticada', verificarToken, (req, res) => {
